@@ -1,11 +1,15 @@
 
-import { NextApiResponse, NextApiRequest } from "next";
-import { NextResponse } from "next/server";
-const UserModel = require('../models/UserModel');
+import { NextApiRequest } from "next";
+import { NextRequest, NextResponse } from "next/server";
+import User from "@/app/models/User"
 const jwt = require('jsonwebtoken');
+import { connectDB } from "@/app/db/config";
 
-export default async function authenticate(request: NextApiRequest, response: NextApiResponse) {
-    const authorizationHeader = request.headers.authorization;
+connectDB();
+
+export default async function authenticate(request: any) {
+
+    const authorizationHeader = request.headers.get('authorization');
 
     if (!authorizationHeader || !authorizationHeader.startsWith('Bearer ')) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -17,17 +21,17 @@ export default async function authenticate(request: NextApiRequest, response: Ne
 
         const decoded = jwt.verify(token, secretKey);
 
-        const user = await UserModel.findOne({ _id: decoded.userId })
+        const user = await User.findOne({ _id: decoded.userId })
 
         if (!user) {
-            return response.status(401).json({ error: 'Unauthorized' });
+            return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
         } else {
             return user
         }
 
     } catch (error) {
         console.error('Authentication error:', error);
-        return response.status(401).json({ error: 'Invalid token' });
+        return NextResponse.json({ error: 'Invalid token' }, { status: 401 });
     }
 }
 

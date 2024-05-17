@@ -1,7 +1,10 @@
 import { NextApiResponse, NextApiRequest } from "next";
-const UserModel = require('../../../models/UserModel');
+import { NextResponse, NextRequest } from "next/server";
+import User from "@/app/models/User"
 import { z } from 'zod';
+import { connectDB } from "@/app/db/config";
 
+connectDB();
 
 const userSchema = z.object({
     firstName: z.string().min(2),
@@ -11,27 +14,29 @@ const userSchema = z.object({
     confirmPassword: z.string().min(5),
 });
 
-export default async function POST(request: NextApiRequest, response: NextApiResponse) {
-
-    const user = userSchema.safeParse(request.body)
+export async function POST(request: any) {
+    
+    const user = userSchema.safeParse(await request.json())
 
     if (!user.success) {
-        return response.status(400).json({ errors: user.error.format() })
+        return NextResponse.json({ errors: user.error.format() }, {status: 400})
     }
 
-    const countedUser = await UserModel.countDocuments({ email: user.data.email })
+    const countedUser = await User.countDocuments({ email: user.data.email })
 
     if (countedUser > 0) {
-        return response.status(400).json({ errors: { email: 'This email has been already enrolled.' } })
+        return NextResponse.json({ errors: { email: 'This email has been already enrolled.' } }, {status: 400})
     }else if ( user.data.password != user.data.confirmPassword) {
-        return response.status(400).json({ errors: { confirmPassword: 'Passwords do not match.' } })
+        return NextResponse.json({ errors: { confirmPassword: 'Passwords do not match.' } }, {status: 400})
     }
 
-    const data = user.data
+    const newUser = new User(user.data)
 
-    const newUser = new UserModel({ data })
-
-    newUser.save()
+    const createdUser = await newUser.save()
+    if (createdUser) {
+        return NextResponse.json({ message: 'User saved successfully', user: createdUser })
+    }else {
+        return NextResponse.json({ message: 'User creation error' }, { status: 400 })
+    }
   
-    return response.status(200).json({ message: 'User saved successfully' })
 }

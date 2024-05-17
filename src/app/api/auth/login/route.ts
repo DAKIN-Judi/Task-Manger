@@ -1,30 +1,34 @@
-import { NextApiResponse, NextApiRequest } from "next";
-const UserModel = require('../../../models/UserModel');
+import { NextResponse } from "next/server";
+import User from "@/app/models/User"
 const jwt = require('jsonwebtoken');
 import { z } from 'zod';
+import { connectDB } from "@/app/db/config";
 
-export async function POST(request: NextApiRequest, response: NextApiResponse) {
-    const userSchema = z.object({ email: z.string().email(), password: z.string() });
+connectDB();
 
-    const user = userSchema.safeParse(request.body)
+const userSchema = z.object({ email: z.string().email(), password: z.string() });
+
+export async function POST(request: any) {
+
+    const user = userSchema.safeParse(await request.json())
     const expiresIn = '24h';
     const secretKey = process.env.JWT_SECRET_KEY;
 
     if (!user.success) {
-        return response.status(400).json({ errors: user.error.format() })
+        return NextResponse.json({ errors: user.error.format() })
     }
 
-    const foundUser = await UserModel.findOne({ email: user.data.email })
+    const foundUser = await User.findOne({ email: user.data.email })
 
     if (!foundUser) {
-        return response.status(401).json({ errors: 'Unauthorized' })
+        return NextResponse.json({ errors: 'Unauthorized 1' }, { status: 401 })
     }
 
-    if (! await UserModel.comparePassword(user.data.password)){
-        return response.status(401).json({ errors: 'Invalid credentials. Please check your username and password and try again.' })
+    if (! await foundUser.comparePassword(user.data.password)){
+        return NextResponse.json({ errors: 'Invalid credentials. Please check your username and password and try again.' }, { status: 401 })
     }
 
     const connectionData = jwt.sign({ userId: foundUser._id, email: foundUser.email }, secretKey, { expiresIn: expiresIn });
 
-    return response.status(200).json({ data: connectionData })
+    return NextResponse.json({ token: connectionData, user: foundUser })
 }
