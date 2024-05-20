@@ -1,6 +1,30 @@
 This is a [Next.js](https://nextjs.org/) project Task-Manager
 
 
+## Configuration
+
+Create .env configuration file and configure it accordingly for your project
+
+you can also configuration sample files into .env.sample
+
+## Requirements
+
+For install all packages required by this project run following command based on yout environment
+
+```bash
+npm install
+# or
+yarn install
+# or
+pnpm install
+# or
+bun install
+```
+
+You will also need to configure on Mongo database.
+
+Replace Database connection string into .env configuration file
+
 ## Getting Started
 
 First, run the development server:
@@ -15,12 +39,7 @@ pnpm dev
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## API Documentation
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+You will see the documentation of the api into following links: [text](https://documenter.getpostman.com/view/17636181/2sA3QmEF1M)
 
-This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
-
-## Learn More
-
-Che
