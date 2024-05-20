@@ -41,5 +41,5 @@ bun dev
 
 ## API Documentation
 
-You will see the documentation of the api into following links: [text](https://documenter.getpostman.com/view/17636181/2sA3QmEF1M)
+You will see the documentation of the api into following links: https://documenter.getpostman.com/view/17636181/2sA3QmEF1M
 
