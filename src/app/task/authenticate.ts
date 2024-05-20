@@ -3,9 +3,6 @@ import { NextApiRequest } from "next";
 import { NextRequest, NextResponse } from "next/server";
 import User from "@/app/models/User"
 const jwt = require('jsonwebtoken');
-import { connectDB } from "@/app/db/config";
-
-connectDB();
 
 export default async function authenticate(request: any) {
 

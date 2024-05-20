@@ -2,9 +2,6 @@ import { NextResponse } from "next/server";
 import User from "@/app/models/User"
 const jwt = require('jsonwebtoken');
 import { z } from 'zod';
-import { connectDB } from "@/app/db/config";
-
-connectDB();
 
 const userSchema = z.object({ email: z.string().email(), password: z.string() });
 
@@ -21,7 +18,7 @@ export async function POST(request: any) {
     const foundUser = await User.findOne({ email: user.data.email })
 
     if (!foundUser) {
-        return NextResponse.json({ errors: 'Unauthorized 1' }, { status: 401 })
+        return NextResponse.json({ errors: 'Unauthorized' }, { status: 401 })
     }
 
     if (! await foundUser.comparePassword(user.data.password)){

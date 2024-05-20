@@ -2,9 +2,6 @@ import { NextApiResponse, NextApiRequest } from "next";
 import { NextResponse, NextRequest } from "next/server";
 import User from "@/app/models/User"
 import { z } from 'zod';
-import { connectDB } from "@/app/db/config";
-
-connectDB();
 
 const userSchema = z.object({
     firstName: z.string().min(2),

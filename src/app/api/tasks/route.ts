@@ -1,31 +1,47 @@
 import { NextApiRequest } from "next";
 import { NextResponse } from "next/server";
-
 import authenticate from "@/app/task/authenticate";
-import User from "@/app/models/User";
+import { z } from 'zod';
 
-export async function GET (request: Request) {
-    const user = new User(await authenticate(request))
+
+const createTaskValidator = z.object({
+    title: z.string().min(2),
+    description: z.string(),
+    status: z.string(),
+    priority: z.number(),
+    dueDate: z.string(),
+});
+
+
+export async function GET(request: Request) {
+
+    const user = await authenticate(request)
 
     if (user instanceof NextResponse) {
         return user;
     }
 
+    const userTasks = await user.getTasks()
 
-    const userTasks = user.tasks()
-
-    return NextResponse.json({ name: 'hello', userTasks })
+    return NextResponse.json({ tasks: userTasks })
 }
 
-// export async function POST (request: NextApiRequest, response: NextApiResponse) {
-//     return response.json({ name: 'hello'})
-// }
+export async function POST(request: any) {
 
-// export async function PUT (request: NextApiRequest, response: NextApiResponse) {
-//     return response.json({ name: 'hello'})
-// }
+    const user = await authenticate(request)
+    const task = createTaskValidator.safeParse(await request.json())
 
+    if (user instanceof NextResponse) {
+        return user;
+    } else if (!task.success) {
+        return NextResponse.json({ errors: task.error.format() }, { status: 400 })
+    }
 
-// export async function DELETE (request: NextApiRequest, response: NextApiResponse) {
-//     return response.json({ name: 'hello'})
-// }
+    const newTask = await user.createTask(task.data)
+
+    if (newTask) {
+        return NextResponse.json({ message: 'Task saved successfully', task: newTask })
+    } else {
+        return NextResponse.json({ message: 'Task creation error' }, { status: 400 })
+    }
+}

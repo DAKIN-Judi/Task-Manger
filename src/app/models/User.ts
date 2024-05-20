@@ -4,6 +4,7 @@ import Task from './Task';
 const bcrypt = require('bcrypt');
 
 interface User extends Document {
+    _id: Schema.Types.ObjectId;
     firstName: String;
     lastName: String;
     password: String;
@@ -11,7 +12,8 @@ interface User extends Document {
     createdAt: Date;
     updatedAt: Date;
     comparePassword(candidatePassword: string): Promise<boolean>;
-    tasks(): Promise<Task[]>;
+    getTasks(): Promise<Task[]>;
+    createTask(taskData: Partial<Task>): Promise<Task>;
 }
 
 const userSchema = new Schema<User>({
@@ -23,13 +25,13 @@ const userSchema = new Schema<User>({
     updatedAt: { type: Date, default: Date.now }
 }, {
     toJSON: {
-        transform: function(doc, ret) {
+        transform: function (doc, ret) {
             delete ret.password;
             return ret;
         }
     },
     toObject: {
-        transform: function(doc, ret) {
+        transform: function (doc, ret) {
             delete ret.password;
             return ret;
         }
@@ -55,7 +57,20 @@ userSchema.methods.comparePassword = async function (candidatePassword: String) 
     return bcrypt.compare(candidatePassword, this.password);
 };
 
-userSchema.methods.tasks = async function() {
+userSchema.virtual('tasks', {
+    ref: 'Task',
+    localField: '_id',
+    foreignField: 'userId'
+});
+
+userSchema.methods.createTask = async function (taskData: Partial<Task>) {
+    taskData.userId = this._id;
+    const task = new Task(taskData);
+    await task.save();
+    return task;
+};
+
+userSchema.methods.getTasks = async function () {
     await this.populate('tasks');
     return this.tasks;
 }
